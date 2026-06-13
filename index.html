@@ -2,7 +2,7 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>تسجيل النشاط التجاري</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -17,10 +17,10 @@
             align-items: center;
         }
         .container {
-            max-width: 900px;
+            max-width: 950px;
             width: 100%;
             background: rgba(255,255,255,0.95);
-            border-radius: 24px;
+            border-radius: 28px;
             padding: 25px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
         }
@@ -33,7 +33,7 @@
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
-            border-radius: 12px;
+            border-radius: 16px;
             font-size: 15px;
             background: #f9f9f9;
         }
@@ -45,7 +45,7 @@
             border: none;
             padding: 14px;
             font-size: 18px;
-            border-radius: 50px;
+            border-radius: 40px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
@@ -59,16 +59,16 @@
         .message { margin-top: 20px; padding: 12px; border-radius: 50px; display: none; text-align: center; }
         .success { background: #d4edda; color: #155724; display: block; }
         .error { background: #f8d7da; color: #721c24; display: block; }
-        .images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 15px; margin-top: 10px; }
-        .image-card { border: 2px solid #e0e0e0; border-radius: 16px; padding: 10px; text-align: center; background: white; cursor: pointer; transition: 0.2s; }
-        .image-card:hover { border-color: #667eea; }
-        .image-card i { font-size: 36px; color: #667eea; margin-bottom: 5px; }
-        .image-card span { font-size: 13px; color: #555; display: block; }
+        .images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 15px; margin-top: 10px; }
+        .image-card { border: 2px solid #e0e0e0; border-radius: 20px; padding: 12px; text-align: center; background: white; cursor: pointer; transition: 0.2s; }
+        .image-card:hover { border-color: #667eea; background: #fafafa; }
+        .image-card i { font-size: 42px; color: #667eea; margin-bottom: 8px; }
+        .image-card span { display: block; font-size: 13px; color: #555; }
         .image-card input { display: none; }
-        .image-preview { max-width: 100%; max-height: 100px; border-radius: 8px; margin-top: 8px; display: none; object-fit: cover; }
+        .image-preview { max-width: 100%; max-height: 110px; border-radius: 12px; margin-top: 10px; display: none; object-fit: cover; }
         .image-filename { font-size: 10px; color: #2c3e50; margin-top: 5px; word-break: break-word; }
-        .note { font-size: 12px; color: #7f8c8d; margin-top: 5px; display: flex; gap: 5px; align-items: center; }
-        @media (max-width:600px){ .images-grid { grid-template-columns: repeat(2,1fr); } }
+        .note { font-size: 12px; color: #7f8c8d; margin-top: 8px; display: flex; gap: 5px; align-items: center; }
+        @media (max-width:600px) { .images-grid { grid-template-columns: repeat(2,1fr); } }
     </style>
 </head>
 <body>
@@ -78,7 +78,7 @@
         <div class="form-group">
             <label><i class="fas fa-user"></i> الميداني</label>
             <select id="fieldOfficer" required>
-                <option value="">-- اختر --</option>
+                <option value="">-- اختر الميداني --</option>
                 <option>ناصر الشهيل</option><option>سعود الشقير</option><option>فريح الرشيدي</option>
                 <option>احمد السويدي</option><option>مفلح الشمري</option><option>علي الرشيدان</option>
             </select>
@@ -90,7 +90,7 @@
         <div class="form-group">
             <label><i class="fas fa-building"></i> الصور (8 صور مطلوبة)</label>
             <div class="images-grid" id="imagesGrid"></div>
-            <div class="note"><i class="fas fa-info-circle"></i> اضغط على كل مربع لالتقاط صورة</div>
+            <div class="note"><i class="fas fa-info-circle"></i> اضغط على كل مربع لاختيار أو التقاط صورة</div>
         </div>
         <div class="form-group">
             <label><i class="fas fa-pen"></i> الملاحظات</label>
@@ -102,18 +102,18 @@
 </div>
 
 <script>
-    // ⚠️ هام: استبدل هذا الرابط بالرابط الذي ستحصل عليه بعد النشر
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDUU9EwHlJ7gawLxiwJJIDNsoZD6F6qz0t_0E7gVqOuFUvpHcsKCJ0GxF3i0NFGzZ2zw/exec';
-    const imagesGrid = document.getElementById('imagesGrid');
-    let imagesData = new Array(8).fill(null);
-    let previews = [], filenames = [];
+    // ⚠️ أدخل هنا رابط تطبيق الويب المنشور من Google Apps Script
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyghsl_A83EZUa2Pa5zjiSc65ITJRqOxqbUjL_fuwB7l4x92Hw61n48d4dAeFWW9VcvUQ/exec'; // استبدله برابطك
 
-    function createCard(idx) {
+    const imagesGrid = document.getElementById('imagesGrid');
+    let imagesData = [];
+
+    function createImageCard(index) {
         const card = document.createElement('div');
         card.className = 'image-card';
         card.innerHTML = `
             <i class="fas fa-camera"></i>
-            <span>صورة ${idx+1}</span>
+            <span>صورة ${index + 1}</span>
             <input type="file" accept="image/*" capture="environment" required>
             <img class="image-preview" style="display:none;">
             <div class="image-filename"></div>
@@ -121,6 +121,7 @@
         const input = card.querySelector('input');
         const preview = card.querySelector('.image-preview');
         const filenameSpan = card.querySelector('.image-filename');
+
         input.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -129,22 +130,26 @@
                 reader.onload = (ev) => {
                     preview.src = ev.target.result;
                     preview.style.display = 'block';
-                    imagesData[idx] = { fileName: file.name, mimeType: file.type, data: ev.target.result };
+                    imagesData[index] = {
+                        fileName: file.name,
+                        mimeType: file.type,
+                        data: ev.target.result
+                    };
                 };
                 reader.readAsDataURL(file);
             } else {
-                imagesData[idx] = null;
+                imagesData[index] = null;
                 preview.style.display = 'none';
                 filenameSpan.innerText = '';
             }
         });
         card.addEventListener('click', () => input.click());
-        previews.push(preview);
-        filenames.push(filenameSpan);
         return card;
     }
 
-    for (let i = 0; i < 8; i++) imagesGrid.appendChild(createCard(i));
+    for (let i = 0; i < 8; i++) {
+        imagesGrid.appendChild(createImageCard(i));
+    }
 
     const form = document.getElementById('dataForm');
     const msgDiv = document.getElementById('message');
@@ -155,29 +160,41 @@
         msgDiv.style.display = 'none';
         const officer = document.getElementById('fieldOfficer').value;
         const meter = document.getElementById('meterNumber').value.trim();
-        if (!officer || !meter) return showMessage('املأ جميع الحقول', 'error');
-        const missing = imagesData.findIndex(img => img === null);
-        if (missing !== -1) return showMessage(`الصورة ${missing+1} مطلوبة`, 'error');
+        const notes = document.getElementById('notes').value;
+
+        if (!officer) return showMessage('اختر الميداني', 'error');
+        if (!meter) return showMessage('أدخل رقم العداد', 'error');
+
+        const missing = imagesData.findIndex(img => !img);
+        if (missing !== -1) return showMessage(`الصورة رقم ${missing+1} مطلوبة`, 'error');
+
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الرفع...';
+
+        const payload = {
+            fieldOfficer: officer,
+            meterNumber: meter,
+            images: imagesData,
+            notes: notes
+        };
+
         try {
-            const res = await fetch(SCRIPT_URL, {
+            const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({ fieldOfficer: officer, meterNumber: meter, images: imagesData, notes: document.getElementById('notes').value })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
-            const json = await res.json();
-            if (json.result === 'success') {
+            const result = await response.json();
+            if (result.result === 'success') {
                 showMessage('✅ تم الإرسال بنجاح', 'success');
                 form.reset();
-                for (let i = 0; i < imagesData.length; i++) {
-                    imagesData[i] = null;
-                    if (previews[i]) previews[i].style.display = 'none';
-                    if (filenames[i]) filenames[i].innerText = '';
-                    const input = imagesGrid.children[i].querySelector('input');
-                    if (input) input.value = '';
-                }
-            } else throw new Error(json.error);
+                imagesData = [];
+                document.querySelectorAll('.image-preview').forEach(img => img.style.display = 'none');
+                document.querySelectorAll('.image-filename').forEach(span => span.innerText = '');
+                document.querySelectorAll('input[type="file"]').forEach(input => input.value = '');
+            } else {
+                showMessage('❌ فشل الإرسال: ' + result.error, 'error');
+            }
         } catch (err) {
             showMessage('❌ خطأ: ' + err.message, 'error');
         } finally {
@@ -186,8 +203,8 @@
         }
     });
 
-    function showMessage(txt, type) {
-        msgDiv.textContent = txt;
+    function showMessage(text, type) {
+        msgDiv.textContent = text;
         msgDiv.className = `message ${type}`;
         msgDiv.style.display = 'block';
         setTimeout(() => { if (msgDiv.style.display === 'block') msgDiv.style.display = 'none'; }, 5000);
