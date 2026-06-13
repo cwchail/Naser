@@ -2,386 +2,195 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل النشاط التجاري</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
         .container {
-            max-width: 1100px;
+            max-width: 900px;
             width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 30px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
         }
-        h2 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 25px;
-            font-size: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; display: flex; gap: 10px; justify-content: center; align-items: center; }
         h2 i { color: #667eea; }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #34495e;
-            font-size: 15px;
-        }
-        label i {
-            margin-left: 8px;
-            color: #667eea;
-            width: 20px;
-        }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #34495e; }
+        label i { margin-left: 8px; color: #667eea; }
         input, select, textarea {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
             font-size: 15px;
-            font-family: inherit;
-            transition: all 0.3s;
-            background-color: #f9f9f9;
+            background: #f9f9f9;
         }
-        input:focus, select:focus, textarea:focus {
-            border-color: #667eea;
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            outline: none;
-        }
-        textarea { resize: vertical; min-height: 80px; }
+        input:focus, select:focus, textarea:focus { border-color: #667eea; outline: none; background: white; }
         button[type="submit"] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 14px 20px;
+            padding: 14px;
             font-size: 18px;
             border-radius: 50px;
-            cursor: pointer;
-            width: 100%;
             font-weight: bold;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 15px;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
+            transition: 0.2s;
         }
-        button[type="submit"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-        button[type="submit"]:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .message {
-            margin-top: 20px;
-            padding: 12px 18px;
-            border-radius: 50px;
-            display: none;
-            text-align: center;
-            font-weight: 500;
-        }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-        .note {
-            font-size: 13px;
-            color: #7f8c8d;
-            margin-top: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .note i { color: #667eea; }
-        .images-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
-        .image-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 16px;
-            padding: 10px;
-            background: #fff;
-            transition: all 0.3s;
-            text-align: center;
-        }
-        .image-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .image-upload {
-            cursor: pointer;
-        }
-        .image-upload i {
-            font-size: 36px;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-        .image-upload span {
-            display: block;
-            font-size: 13px;
-            color: #555;
-            margin-bottom: 5px;
-        }
-        .image-upload input {
-            display: none;
-        }
-        .image-preview {
-            max-width: 100%;
-            max-height: 100px;
-            border-radius: 8px;
-            margin-top: 8px;
-            display: none;
-            object-fit: cover;
-        }
-        .image-filename {
-            font-size: 10px;
-            color: #2c3e50;
-            margin-top: 5px;
-            word-break: break-all;
-        }
-        @media (max-width: 600px) {
-            .container { padding: 20px; }
-            .images-grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        button[type="submit"]:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.4); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .message { margin-top: 20px; padding: 12px; border-radius: 50px; display: none; text-align: center; }
+        .success { background: #d4edda; color: #155724; display: block; }
+        .error { background: #f8d7da; color: #721c24; display: block; }
+        .images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 15px; margin-top: 10px; }
+        .image-card { border: 2px solid #e0e0e0; border-radius: 16px; padding: 10px; text-align: center; background: white; cursor: pointer; transition: 0.2s; }
+        .image-card:hover { border-color: #667eea; }
+        .image-card i { font-size: 36px; color: #667eea; margin-bottom: 5px; }
+        .image-card span { font-size: 13px; color: #555; display: block; }
+        .image-card input { display: none; }
+        .image-preview { max-width: 100%; max-height: 100px; border-radius: 8px; margin-top: 8px; display: none; object-fit: cover; }
+        .image-filename { font-size: 10px; color: #2c3e50; margin-top: 5px; word-break: break-word; }
+        .note { font-size: 12px; color: #7f8c8d; margin-top: 5px; display: flex; gap: 5px; align-items: center; }
+        @media (max-width:600px){ .images-grid { grid-template-columns: repeat(2,1fr); } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2><i class="fas fa-clipboard-list"></i> تسجيل النشاط التجاري</h2>
-        <form id="dataForm">
-            <!-- الميداني -->
-            <div class="form-group">
-                <label><i class="fas fa-user"></i> الميداني</label>
-                <select id="fieldOfficer" required>
-                    <option value="">-- اختر الميداني --</option>
-                    <option value="ناصر الشهيل">ناصر الشهيل</option>
-                    <option value="سعود الشقير">سعود الشقير</option>
-                    <option value="فريح الرشيدي">فريح الرشيدي</option>
-                    <option value="احمد السويدي">احمد السويدي</option>
-                    <option value="مفلح الشمري">مفلح الشمري</option>
-                    <option value="علي الرشيدان">علي الرشيدان</option>
-                </select>
-            </div>
+<div class="container">
+    <h2><i class="fas fa-clipboard-list"></i> تسجيل النشاط التجاري</h2>
+    <form id="dataForm">
+        <div class="form-group">
+            <label><i class="fas fa-user"></i> الميداني</label>
+            <select id="fieldOfficer" required>
+                <option value="">-- اختر --</option>
+                <option>ناصر الشهيل</option><option>سعود الشقير</option><option>فريح الرشيدي</option>
+                <option>احمد السويدي</option><option>مفلح الشمري</option><option>علي الرشيدان</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-charging-station"></i> رقم العداد</label>
+            <input type="text" id="meterNumber" placeholder="رقم العداد" required>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-building"></i> الصور (8 صور مطلوبة)</label>
+            <div class="images-grid" id="imagesGrid"></div>
+            <div class="note"><i class="fas fa-info-circle"></i> اضغط على كل مربع لالتقاط صورة</div>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-pen"></i> الملاحظات</label>
+            <textarea id="notes" rows="3"></textarea>
+        </div>
+        <button type="submit" id="submitBtn"><i class="fas fa-paper-plane"></i> إرسال</button>
+    </form>
+    <div id="message" class="message"></div>
+</div>
 
-            <!-- رقم العداد -->
-            <div class="form-group">
-                <label><i class="fas fa-charging-station"></i> رقم العداد</label>
-                <input type="text" id="meterNumber" placeholder="أدخل رقم العداد" required>
-            </div>
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-INIm_dogr15_gLo3CNGTxLGx_3aS7sXpLfvhG-c1tLhWp5ZZwnRekyR4sAAsaES1DQ/exec'; // غيّره بعد النشر
+    const imagesGrid = document.getElementById('imagesGrid');
+    let imagesData = new Array(8).fill(null);
+    let previews = [], filenames = [];
 
-            <!-- 8 صور للمبنى -->
-            <div class="form-group">
-                <label><i class="fas fa-building"></i> صور المبنى (8 صور مطلوبة)</label>
-                <div class="images-grid" id="imagesGrid"></div>
-                <div class="note"><i class="fas fa-info-circle"></i> يرجى التقاط 8 صور واضحة للمبنى (واجهة، خلفية، جانبية، عداد، لافتة، مدخل، سور، عام)</div>
-            </div>
-
-            <!-- الملاحظات -->
-            <div class="form-group">
-                <label><i class="fas fa-pen"></i> الملاحظات</label>
-                <textarea id="notes" placeholder="أي ملاحظات إضافية..."></textarea>
-            </div>
-
-            <button type="submit" id="submitBtn"><i class="fas fa-paper-plane"></i> إرسال البيانات</button>
-        </form>
-        <div id="message" class="message"></div>
-    </div>
-
-    <script>
-        (function() {
-            // رابط تطبيق الويب المنشور (استبدله بالرابط الخاص بك بعد النشر)
-            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKvFQU1wEugONClp5gn_DNeZ4FS85ufMzeJb_J1Kl-ZH1th7vAcgCpMlaTMJm2xeqorQ/exec'; // ⚠️ غيّر هذا الرابط
-        
-            // إنشاء 8 بطاقات صور ديناميكياً
-            const imagesGrid = document.getElementById('imagesGrid');
-            const imagesData = new Array(8).fill(null);
-            const previewElements = [];
-            const filenameElements = [];
-            
-            function createImageCard(index) {
-                const card = document.createElement('div');
-                card.className = 'image-card';
-                
-                const uploadDiv = document.createElement('div');
-                uploadDiv.className = 'image-upload';
-                
-                const icon = document.createElement('i');
-                icon.className = 'fas fa-camera';
-                
-                const span = document.createElement('span');
-                span.textContent = `صورة ${index + 1}`;
-                
-                const fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.accept = 'image/*';
-                fileInput.capture = 'environment';
-                fileInput.required = true;
-                
-                const previewImg = document.createElement('img');
-                previewImg.className = 'image-preview';
-                
-                const filenameSpan = document.createElement('div');
-                filenameSpan.className = 'image-filename';
-                
-                uploadDiv.appendChild(icon);
-                uploadDiv.appendChild(span);
-                uploadDiv.appendChild(fileInput);
-                uploadDiv.appendChild(previewImg);
-                uploadDiv.appendChild(filenameSpan);
-                card.appendChild(uploadDiv);
-                
-                // معالجة اختيار الصورة
-                fileInput.addEventListener('change', function(event) {
-                    const file = event.target.files[0];
-                    if (file) {
-                        filenameSpan.textContent = file.name;
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            previewImg.src = e.target.result;
-                            previewImg.style.display = 'block';
-                            imagesData[index] = {
-                                fileName: file.name,
-                                mimeType: file.type,
-                                data: e.target.result
-                            };
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        imagesData[index] = null;
-                        previewImg.style.display = 'none';
-                        filenameSpan.textContent = '';
-                    }
-                });
-                
-                // النقر على الـ div ينقر على input
-                uploadDiv.addEventListener('click', function(e) {
-                    if (e.target !== fileInput) {
-                        fileInput.click();
-                    }
-                });
-                
-                previewElements.push(previewImg);
-                filenameElements.push(filenameSpan);
-                return card;
+    function createCard(idx) {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+        card.innerHTML = `
+            <i class="fas fa-camera"></i>
+            <span>صورة ${idx+1}</span>
+            <input type="file" accept="image/*" capture="environment" required>
+            <img class="image-preview" style="display:none;">
+            <div class="image-filename"></div>
+        `;
+        const input = card.querySelector('input');
+        const preview = card.querySelector('.image-preview');
+        const filenameSpan = card.querySelector('.image-filename');
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                filenameSpan.innerText = file.name;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    preview.src = ev.target.result;
+                    preview.style.display = 'block';
+                    imagesData[idx] = { fileName: file.name, mimeType: file.type, data: ev.target.result };
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagesData[idx] = null;
+                preview.style.display = 'none';
+                filenameSpan.innerText = '';
             }
-            
-            // إنشاء البطاقات
-            for (let i = 0; i < 8; i++) {
-                imagesGrid.appendChild(createImageCard(i));
-            }
-            
-            // إرسال النموذج
-            const form = document.getElementById('dataForm');
-            const messageDiv = document.getElementById('message');
-            const submitBtn = document.getElementById('submitBtn');
-            
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                messageDiv.style.display = 'none';
-                messageDiv.className = 'message';
-                
-                const fieldOfficer = document.getElementById('fieldOfficer').value;
-                const meterNumber = document.getElementById('meterNumber').value.trim();
-                const notes = document.getElementById('notes').value;
-                
-                if (!fieldOfficer) return showMessage('الرجاء اختيار الميداني', 'error');
-                if (!meterNumber) return showMessage('الرجاء إدخال رقم العداد', 'error');
-                
-                // التحقق من وجود 8 صور
-                const missingIndex = imagesData.findIndex(img => img === null);
-                if (missingIndex !== -1) {
-                    return showMessage(`الرجاء إرفاق الصورة رقم ${missingIndex+1}`, 'error');
-                }
-                
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري رفع 8 صور...';
-                
-                try {
-                    const payload = {
-                        fieldOfficer: fieldOfficer,
-                        meterNumber: meterNumber,
-                        images: imagesData,
-                        notes: notes
-                    };
-                    
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'cors',
-                        redirect: 'follow',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const result = await response.json();
-                    
-                    if (result.result === 'success') {
-                        showMessage('✅ تم إرسال البيانات بنجاح!', 'success');
-                        form.reset();
-                        // إعادة تعيين الصور
-                        for (let i = 0; i < imagesData.length; i++) {
-                            imagesData[i] = null;
-                            if (previewElements[i]) previewElements[i].style.display = 'none';
-                            if (filenameElements[i]) filenameElements[i].textContent = '';
-                            const card = imagesGrid.children[i];
-                            const fileInput = card.querySelector('input[type="file"]');
-                            if (fileInput) fileInput.value = '';
-                        }
-                    } else {
-                        showMessage('❌ فشل الإرسال: ' + (result.error || 'خطأ غير معروف'), 'error');
-                    }
-                } catch (error) {
-                    console.error(error);
-                    showMessage('❌ حدث خطأ: ' + error.message, 'error');
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال البيانات';
-                }
+        });
+        card.addEventListener('click', () => input.click());
+        previews.push(preview);
+        filenames.push(filenameSpan);
+        return card;
+    }
+
+    for (let i = 0; i < 8; i++) imagesGrid.appendChild(createCard(i));
+
+    const form = document.getElementById('dataForm');
+    const msgDiv = document.getElementById('message');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msgDiv.style.display = 'none';
+        const officer = document.getElementById('fieldOfficer').value;
+        const meter = document.getElementById('meterNumber').value.trim();
+        if (!officer || !meter) return showMessage('املأ جميع الحقول', 'error');
+        const missing = imagesData.findIndex(img => img === null);
+        if (missing !== -1) return showMessage(`الصورة ${missing+1} مطلوبة`, 'error');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الرفع...';
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ fieldOfficer: officer, meterNumber: meter, images: imagesData, notes: document.getElementById('notes').value })
             });
-            
-            function showMessage(text, type) {
-                messageDiv.textContent = text;
-                messageDiv.className = `message ${type}`;
-                messageDiv.style.display = 'block';
-                setTimeout(() => {
-                    if (messageDiv.style.display === 'block') {
-                        messageDiv.style.display = 'none';
-                    }
-                }, 5000);
-            }
-        })();
-    </script>
+            const json = await res.json();
+            if (json.result === 'success') {
+                showMessage('✅ تم الإرسال بنجاح', 'success');
+                form.reset();
+                for (let i = 0; i < imagesData.length; i++) {
+                    imagesData[i] = null;
+                    if (previews[i]) previews[i].style.display = 'none';
+                    if (filenames[i]) filenames[i].innerText = '';
+                    const input = imagesGrid.children[i].querySelector('input');
+                    if (input) input.value = '';
+                }
+            } else throw new Error(json.error);
+        } catch (err) {
+            showMessage('❌ خطأ: ' + err.message, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال';
+        }
+    });
+
+    function showMessage(txt, type) {
+        msgDiv.textContent = txt;
+        msgDiv.className = `message ${type}`;
+        msgDiv.style.display = 'block';
+        setTimeout(() => { if (msgDiv.style.display === 'block') msgDiv.style.display = 'none'; }, 5000);
+    }
+</script>
 </body>
 </html>
