@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>تسجيل النشاط التجاري</title>
+    <title>تسجيل النشاط التجاري - ImgBB</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -102,8 +102,8 @@
 </div>
 
 <script>
-    // ⚠️ أدخل هنا رابط تطبيق الويب المنشور من Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsOCOC31lGoKfWZ8PLZOCLDHqTmJRJXDooTVzv8o-17b_NPSbCHJL6Kr_2Nfp6mr8uSw/exec'; // استبدله برابطك
+    // ⚠️ ضع هنا رابط تطبيق الويب المنشور من Google Apps Script (بعد نشره)
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyT3mzL9pBzGlFAYuHUFjCOvA9tdUVjEP-qq1BILT0BARU2mIFMq9HUr9WtIBrbUr_EHg/exec'; // استبدله برابطك
 
     const imagesGrid = document.getElementById('imagesGrid');
     let imagesData = [];
@@ -133,7 +133,7 @@
                     imagesData[index] = {
                         fileName: file.name,
                         mimeType: file.type,
-                        data: ev.target.result
+                        data: ev.target.result   // base64 كامل مع مقدمته
                     };
                 };
                 reader.readAsDataURL(file);
@@ -169,7 +169,7 @@
         if (missing !== -1) return showMessage(`الصورة رقم ${missing+1} مطلوبة`, 'error');
 
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الرفع...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري رفع الصور...';
 
         const payload = {
             fieldOfficer: officer,
@@ -186,7 +186,7 @@
             });
             const result = await response.json();
             if (result.result === 'success') {
-                showMessage('✅ تم الإرسال بنجاح', 'success');
+                showMessage('✅ تم الإرسال بنجاح!', 'success');
                 form.reset();
                 imagesData = [];
                 document.querySelectorAll('.image-preview').forEach(img => img.style.display = 'none');
