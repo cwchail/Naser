@@ -235,8 +235,15 @@
                 </div>
 
                 <div class="form-group full-width">
-                    <label><i class="fas fa-charging-station"></i> رقم العداد</label>
-                    <input type="text" id="meterNumber" name="meterNumber" placeholder="أدخل رقم العداد" required>
+                    <label><i class="fas fa-charging-station"></i> رقم العداد الجديد</label>
+                    <input type="text" id="meterNumber" name="meterNumber" placeholder="أدخل رقم العداد الجديد" required>
+                </div>
+
+                <!-- الحقل الجديد: رقم العداد القديم -->
+                <div class="form-group full-width">
+                    <label><i class="fas fa-exchange-alt"></i> رقم العداد القديم</label>
+                    <input type="text" id="oldMeterNumber" name="oldMeterNumber" placeholder="أدخل رقم العداد القديم (إن وجد)">
+                    <div class="note"><i class="fas fa-info-circle"></i> في حالة الاستبدال، اكتب الرقم القديم</div>
                 </div>
 
                 <div class="form-group full-width">
@@ -277,7 +284,7 @@
             // ======================
             const IMGBB_API_KEY = '80e250fa77e32dc6df4bbd54eb7af292';
             // استبدل هذا الرابط برابط تطبيق Google Apps Script الخاص بك بعد النشر
-            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby9VDjvpZpdGgjIxDQfut-15pUWXTatBQ31M5DAdGfmHqbP3mOJevjO7VJBuaGMKHlX1w/exec';  // <--- غيّر هذا الرابط
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxctBj6RF09ep0Dzp7ucCYKz2xXkIkZXlNQf-w1ScXAZS5NSdIHITYwrggPBzb-ltXhw/exec';  // <--- غيّر هذا الرابط
 
             // ======================
             // إدارة صور النموذج (5 صور)
@@ -400,10 +407,11 @@
                 
                 const fieldOfficer = document.getElementById('fieldOfficer').value;
                 const meterNumber = document.getElementById('meterNumber').value.trim();
+                const oldMeterNumber = document.getElementById('oldMeterNumber').value.trim();
                 const notes = document.getElementById('notes').value;
                 
                 if (!fieldOfficer) return showMessage('الرجاء اختيار الميداني', 'error');
-                if (!meterNumber) return showMessage('الرجاء إدخال رقم العداد', 'error');
+                if (!meterNumber) return showMessage('الرجاء إدخال رقم العداد الجديد', 'error');
                 
                 const missingIndex = imageFiles.findIndex(f => f === null);
                 if (missingIndex !== -1) {
@@ -427,6 +435,7 @@
                     const payload = {
                         fieldOfficer: fieldOfficer,
                         meterNumber: meterNumber,
+                        oldMeterNumber: oldMeterNumber,   // الحقل الجديد
                         buildingImageUrls: imageUrls,
                         notes: notes
                     };
