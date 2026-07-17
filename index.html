@@ -205,6 +205,9 @@
             width: auto;
             padding: 12px 25px;
         }
+        .download-flex .btn-date {
+            background: #17a2b8;
+        }
         .progress-container {
             margin-top: 10px;
             display: none;
@@ -293,11 +296,24 @@
                     <input type="text" id="downloadMeterNumber" placeholder="أدخل رقم العداد">
                 </div>
                 <div>
-                    <button type="button" id="downloadBtn"><i class="fas fa-file-archive"></i> تحميل جميع الصور (ZIP)</button>
+                    <button type="button" id="downloadBtn"><i class="fas fa-file-archive"></i> تحميل صور هذا العداد (ZIP)</button>
                 </div>
             </div>
             <div id="downloadMessage" class="note" style="margin-top: 10px;"></div>
-            <!-- شريط التقدم -->
+
+            <!-- تحميل جميع صور تاريخ معين -->
+            <div class="download-flex" style="margin-top:20px; border-top:1px dashed #ddd; padding-top:20px;">
+                <div>
+                    <label><i class="fas fa-calendar-alt"></i> تاريخ الإرسال</label>
+                    <input type="date" id="downloadDate">
+                </div>
+                <div>
+                    <button type="button" id="downloadAllByDateBtn" class="btn-date"><i class="fas fa-file-archive"></i> تحميل جميع صور هذا التاريخ (ZIP)</button>
+                </div>
+            </div>
+            <div id="downloadDateMessage" class="note" style="margin-top: 10px;"></div>
+
+            <!-- شريط التقدم المشترك -->
             <div class="progress-container" id="progressContainer">
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
@@ -313,7 +329,7 @@
             // ثوابت التطبيق
             // ======================
             const IMGBB_API_KEY = '80e250fa77e32dc6df4bbd54eb7af292';
-            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyK1gDkD6UVIj534OW1pK5yCBg9maCWoAMOXxPXlOprZDi5NUIn9rumKJ8BvOO5Eyfe1g/exec';  // غيّر هذا الرابط
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwfTepJJacpPoY0sTPVfsOljxtGvyvjM9IKCooAttMG93kF92EmRhfmawKhdcf0YpI/exec';  // غيّر هذا الرابط
 
             // ======================
             // إدارة صور النموذج (5 صور)
@@ -503,14 +519,39 @@
             });
 
             // ======================
-            // تحميل الصور المحفوظة كـ ZIP (مع تقليل الحجم)
+            // دوال التحميل المشتركة
+            // ======================
+            function updateProgress(percent, text) {
+                const fill = document.getElementById('progressFill');
+                const label = document.getElementById('progressText');
+                fill.style.width = percent + '%';
+                label.textContent = text || percent + '%';
+            }
+
+            function showProgress(show) {
+                document.getElementById('progressContainer').style.display = show ? 'block' : 'none';
+            }
+
+            // تحميل صورة واحدة (مصغرة) وإضافتها إلى ZIP
+            async function fetchImageAsBlob(url) {
+                // إضافة معامل حجم 800 بكسل
+                let fetchUrl = url;
+                if (url.includes('?')) {
+                    fetchUrl += '&w=800';
+                } else {
+                    fetchUrl += '?w=800';
+                }
+                const response = await fetch(fetchUrl);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.blob();
+            }
+
+            // ======================
+            // تحميل صور عداد واحد (الوظيفة القديمة)
             // ======================
             const downloadBtn = document.getElementById('downloadBtn');
             const downloadMeter = document.getElementById('downloadMeterNumber');
             const downloadMsg = document.getElementById('downloadMessage');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
             
             downloadBtn.addEventListener('click', async function() {
                 const meter = downloadMeter.value.trim();
@@ -523,12 +564,11 @@
                 downloadMsg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري البحث عن الصور...';
                 downloadMsg.style.color = '#007bff';
                 downloadBtn.disabled = true;
-                progressContainer.style.display = 'block';
-                progressFill.style.width = '0%';
-                progressText.textContent = '0%';
+                showProgress(true);
+                updateProgress(0, '0%');
                 
                 try {
-                    // 1. جلب روابط الصور من الخادم
+                    // جلب روابط الصور
                     const response = await fetch(`${APPS_SCRIPT_URL}?meterNumber=${encodeURIComponent(meter)}`);
                     const result = await response.json();
                     
@@ -543,39 +583,22 @@
                     
                     downloadMsg.innerHTML = `تم العثور على ${imageUrls.length} صورة. جاري التحميل...`;
                     
-                    // 2. تحميل الصور بحجم مصغر (عرض 800 بكسل) لتسريع التحميل
                     const zip = new JSZip();
                     let downloaded = 0;
                     const total = imageUrls.length;
                     
-                    // نعدل الرابط لإضافة معامل الحجم المصغر
-                    const resizedUrls = imageUrls.map(url => {
-                        // إضافة ?w=800 (أو أي معامل آخر يدعمه ImgBB)
-                        if (url.includes('?')) {
-                            return url + '&w=800';
-                        } else {
-                            return url + '?w=800';
-                        }
-                    });
-                    
-                    // تحميل كل صورة على حدة مع تحديث التقدم
-                    const promises = resizedUrls.map(async (url, idx) => {
+                    const promises = imageUrls.map(async (url, idx) => {
                         try {
-                            const imgResponse = await fetch(url);
-                            if (!imgResponse.ok) throw new Error(`HTTP ${imgResponse.status}`);
-                            const blob = await imgResponse.blob();
+                            const blob = await fetchImageAsBlob(url);
                             let ext = url.split('.').pop().split('?')[0];
                             if (!ext.match(/jpg|jpeg|png|gif|webp/i)) ext = 'jpg';
-                            zip.file(`meter_${meter}_${idx+1}.${ext}`, blob, { binary: true });
+                            zip.file(`عداد_${meter}_${idx+1}.${ext}`, blob, { binary: true });
                             downloaded++;
-                            // تحديث التقدم
                             const percent = Math.round((downloaded / total) * 100);
-                            progressFill.style.width = percent + '%';
-                            progressText.textContent = percent + '% (' + downloaded + '/' + total + ')';
+                            updateProgress(percent, `${percent}% (${downloaded}/${total})`);
                         } catch (err) {
                             console.warn(`خطأ في الصورة ${idx+1}:`, err);
                             zip.file(`error_image_${idx+1}.txt`, `فشل تحميل الصورة: ${url}\n${err.message}`);
-                            // لا نزيد downloaded هنا لأنها فشلت
                         }
                     });
                     
@@ -585,7 +608,6 @@
                         throw new Error('لم نتمكن من تحميل أي صورة، راجع الرابط أو حالة الصور');
                     }
                     
-                    // 3. إنشاء ZIP وتنزيله
                     const content = await zip.generateAsync({ type: 'blob' });
                     saveAs(content, `صور_العداد_${meter}.zip`);
                     
@@ -598,12 +620,108 @@
                     downloadBtn.disabled = false;
                     setTimeout(() => {
                         downloadMsg.innerHTML = '';
-                        progressContainer.style.display = 'none';
-                        progressFill.style.width = '0%';
-                        progressText.textContent = '0%';
+                        showProgress(false);
+                        updateProgress(0, '0%');
                     }, 8000);
                 }
             });
+
+            // ======================
+            // تحميل جميع صور التاريخ
+            // ======================
+            const downloadDateBtn = document.getElementById('downloadAllByDateBtn');
+            const downloadDateInput = document.getElementById('downloadDate');
+            const downloadDateMsg = document.getElementById('downloadDateMessage');
+
+            downloadDateBtn.addEventListener('click', async function() {
+                const dateVal = downloadDateInput.value;
+                if (!dateVal) {
+                    downloadDateMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> الرجاء اختيار تاريخ';
+                    downloadDateMsg.style.color = '#dc3545';
+                    return;
+                }
+
+                downloadDateMsg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري البحث عن السجلات...';
+                downloadDateMsg.style.color = '#007bff';
+                downloadDateBtn.disabled = true;
+                showProgress(true);
+                updateProgress(0, '0%');
+
+                try {
+                    // جلب جميع السجلات لهذا التاريخ
+                    const response = await fetch(`${APPS_SCRIPT_URL}?date=${encodeURIComponent(dateVal)}`);
+                    const result = await response.json();
+                    
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+                    
+                    const records = result.records || [];
+                    if (records.length === 0) {
+                        throw new Error('لا توجد سجلات لهذا التاريخ');
+                    }
+
+                    // تجميع كل الصور من كل السجلات
+                    let totalImages = 0;
+                    records.forEach(rec => totalImages += (rec.imageUrls || []).length);
+                    if (totalImages === 0) {
+                        throw new Error('لا توجد صور في السجلات');
+                    }
+
+                    downloadDateMsg.innerHTML = `تم العثور على ${records.length} سجل (${totalImages} صورة). جاري التحميل...`;
+
+                    const zip = new JSZip();
+                    let downloaded = 0;
+                    let processed = 0;
+
+                    // تحميل صور كل سجل
+                    const promises = records.map((record, recIdx) => {
+                        const meter = record.meterNumber || `غير_معروف_${recIdx+1}`;
+                        const urls = record.imageUrls || [];
+                        return urls.map(async (url, imgIdx) => {
+                            try {
+                                const blob = await fetchImageAsBlob(url);
+                                let ext = url.split('.').pop().split('?')[0];
+                                if (!ext.match(/jpg|jpeg|png|gif|webp/i)) ext = 'jpg';
+                                // تسمية الملف: عداد_رقم_العداد_صورةX.jpg
+                                const filename = `عداد_${meter}_صورة${imgIdx+1}.${ext}`;
+                                zip.file(filename, blob, { binary: true });
+                                downloaded++;
+                                processed++;
+                                const percent = Math.round((downloaded / totalImages) * 100);
+                                updateProgress(percent, `${percent}% (${downloaded}/${totalImages})`);
+                            } catch (err) {
+                                console.warn(`خطأ في صورة (عداد ${meter}, صورة ${imgIdx+1}):`, err);
+                                zip.file(`error_${meter}_${imgIdx+1}.txt`, `فشل تحميل الصورة: ${url}\n${err.message}`);
+                                processed++;
+                            }
+                        });
+                    });
+
+                    await Promise.all(promises.flat());
+
+                    if (downloaded === 0 && totalImages > 0) {
+                        throw new Error('لم نتمكن من تحميل أي صورة، راجع الروابط أو حالة الصور');
+                    }
+
+                    const content = await zip.generateAsync({ type: 'blob' });
+                    saveAs(content, `صور_العدادات_تاريخ_${dateVal}.zip`);
+
+                    downloadDateMsg.innerHTML = `<i class="fas fa-check-circle"></i> تم تنزيل ${downloaded} صورة من ${totalImages} (مصغرة بحجم 800 بكسل) لـ ${records.length} سجل.`;
+                    downloadDateMsg.style.color = '#28a745';
+                } catch (err) {
+                    downloadDateMsg.innerHTML = `<i class="fas fa-times-circle"></i> خطأ: ${err.message}`;
+                    downloadDateMsg.style.color = '#dc3545';
+                } finally {
+                    downloadDateBtn.disabled = false;
+                    setTimeout(() => {
+                        downloadDateMsg.innerHTML = '';
+                        showProgress(false);
+                        updateProgress(0, '0%');
+                    }, 8000);
+                }
+            });
+
         })();
     </script>
 </body>
