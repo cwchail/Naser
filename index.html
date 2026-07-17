@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <!-- مكتبات PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -248,7 +247,6 @@
             padding: 3px 10px;
             border-radius: 20px;
         }
-        /* جزء مخفي لإنشاء PDF */
         #pdfContent {
             position: absolute;
             left: -9999px;
@@ -324,7 +322,6 @@
     <div class="container">
         <h2><i class="fas fa-clipboard-list"></i> الاستبدال - الميدانين</h2>
         
-        <!-- نموذج الإرسال -->
         <form id="dataForm">
             <div class="form-grid">
                 <div class="form-group full-width">
@@ -366,13 +363,12 @@
         </form>
         <div id="message" class="message"></div>
 
-        <!-- قسم تحميل الصور والتصدير -->
         <div class="download-section">
             <h3><i class="fas fa-download"></i> تحميل الصور أو تصدير PDF</h3>
             <div class="download-flex">
                 <div>
                     <label><i class="fas fa-charging-station"></i> رقم العداد (للتحميل/التصدير)</label>
-                    <input type="text" id="downloadMeterNumber" placeholder="أدخل رقم العداد">
+                    <input type="text" id="downloadMeterNumber" placeholder="أدخل رقم العداد الجديد">
                 </div>
                 <div>
                     <label><i class="fas fa-calendar-day"></i> التاريخ (للتحميل فقط)</label>
@@ -388,9 +384,9 @@
             <div class="download-hint">
                 <span><i class="fas fa-info-circle"></i> التحميل: تاريخ أو رقم عداد</span>
                 <span><i class="fas fa-info-circle"></i> PDF: رقم عداد فقط (صور بحجم 10سم)</span>
+                <span><i class="fas fa-info-circle"></i> أسماء الصور: الجديد-القديم-رقم</span>
             </div>
             <div id="downloadMessage" class="note" style="margin-top: 10px;"></div>
-            <!-- شريط التقدم -->
             <div class="progress-container" id="progressContainer">
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
@@ -400,20 +396,14 @@
         </div>
     </div>
 
-    <!-- جزء مخفي لإعداد محتوى PDF -->
     <div id="pdfContent"></div>
 
     <script>
         (function() {
-            // ======================
-            // ثوابت التطبيق
-            // ======================
             const IMGBB_API_KEY = '80e250fa77e32dc6df4bbd54eb7af292';
-            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzmwh1cZlDc_vmDkCTw8Us43fNpy8rkpja1spSXF80ZyeCHyg5owbSA0LJxOYk8s8cOsQ/exec';  // غيّر هذا الرابط
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxm_nBxpkTBWcbg-VTK6Fq_5nX7quToOi5oSDzRjtBGQyzWlfQg5Y6mDpqlbhxLs38UWw/exec';
 
-            // ======================
-            // إدارة صور النموذج (5 صور)
-            // ======================
+            // ===== صور النموذج =====
             const imagesGrid = document.getElementById('imagesGrid');
             const imageFiles = new Array(5).fill(null);
             const previewElements = [];
@@ -422,36 +412,28 @@
             function createImageCard(index) {
                 const card = document.createElement('div');
                 card.className = 'image-card';
-                
                 const uploadDiv = document.createElement('div');
                 uploadDiv.className = 'image-upload';
                 uploadDiv.setAttribute('data-index', index);
-                
                 const icon = document.createElement('i');
                 icon.className = 'fas fa-camera';
-                
                 const span = document.createElement('span');
                 span.textContent = `صورة المبنى ${index + 1}`;
-                
                 const fileInput = document.createElement('input');
                 fileInput.type = 'file';
                 fileInput.accept = 'image/*';
                 fileInput.setAttribute('capture', 'environment');
                 fileInput.required = true;
-                
                 const previewImg = document.createElement('img');
                 previewImg.className = 'image-preview';
-                
                 const filenameSpan = document.createElement('div');
                 filenameSpan.className = 'image-filename';
-                
                 uploadDiv.appendChild(icon);
                 uploadDiv.appendChild(span);
                 uploadDiv.appendChild(fileInput);
                 uploadDiv.appendChild(previewImg);
                 uploadDiv.appendChild(filenameSpan);
                 card.appendChild(uploadDiv);
-                
                 fileInput.addEventListener('change', function(event) {
                     const file = event.target.files[0];
                     if (file) {
@@ -469,25 +451,16 @@
                         filenameSpan.textContent = '';
                     }
                 });
-                
                 uploadDiv.addEventListener('click', function(e) {
-                    if (e.target !== fileInput) {
-                        fileInput.click();
-                    }
+                    if (e.target !== fileInput) fileInput.click();
                 });
-                
                 previewElements[index] = previewImg;
                 filenameElements[index] = filenameSpan;
                 return card;
             }
-            
-            for (let i = 0; i < 5; i++) {
-                imagesGrid.appendChild(createImageCard(i));
-            }
+            for (let i = 0; i < 5; i++) imagesGrid.appendChild(createImageCard(i));
 
-            // ======================
-            // رفع الصور إلى ImgBB
-            // ======================
+            // ===== رفع الصور =====
             async function uploadImage(file) {
                 const formData = new FormData();
                 formData.append('image', file);
@@ -495,86 +468,56 @@
                     method: 'POST',
                     body: formData
                 });
-                if (!response.ok) {
-                    throw new Error('فشل رفع الصورة');
-                }
+                if (!response.ok) throw new Error('فشل رفع الصورة');
                 const data = await response.json();
                 return data.data.url;
             }
-            
             async function uploadAllImages(files) {
-                const uploadPromises = files.map(file => uploadImage(file));
-                return await Promise.all(uploadPromises);
+                return await Promise.all(files.map(file => uploadImage(file)));
             }
 
-            // ======================
-            // إرسال النموذج
-            // ======================
+            // ===== إرسال النموذج =====
             const form = document.getElementById('dataForm');
             const messageDiv = document.getElementById('message');
             const submitBtn = document.getElementById('submitBtn');
-            
             async function showMessage(text, type) {
                 messageDiv.textContent = text;
                 messageDiv.className = `message ${type}`;
                 messageDiv.style.display = 'block';
                 setTimeout(() => {
-                    if (messageDiv.style.display === 'block') {
-                        messageDiv.style.display = 'none';
-                    }
+                    if (messageDiv.style.display === 'block') messageDiv.style.display = 'none';
                 }, 5000);
             }
-            
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 messageDiv.style.display = 'none';
-                
                 const fieldOfficer = document.getElementById('fieldOfficer').value;
                 const meterNumber = document.getElementById('meterNumber').value.trim();
                 const oldMeterNumber = document.getElementById('oldMeterNumber').value.trim();
                 const notes = document.getElementById('notes').value;
-                
                 if (!fieldOfficer) return showMessage('الرجاء اختيار الميداني', 'error');
                 if (!meterNumber) return showMessage('الرجاء إدخال رقم العداد الجديد', 'error');
-                
                 const missingIndex = imageFiles.findIndex(f => f === null);
-                if (missingIndex !== -1) {
-                    return showMessage(`الرجاء إرفاق الصورة رقم ${missingIndex+1} للمبنى`, 'error');
-                }
-                
+                if (missingIndex !== -1) return showMessage(`الرجاء إرفاق الصورة رقم ${missingIndex+1}`, 'error');
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري رفع الصور الخمس...';
-                
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري رفع الصور...';
                 try {
-                    let imageUrls;
-                    try {
-                        imageUrls = await uploadAllImages(imageFiles);
-                    } catch (uploadErr) {
-                        showMessage('❌ فشل رفع إحدى الصور: ' + uploadErr.message, 'error');
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال البيانات';
-                        return;
-                    }
-                    
+                    let imageUrls = await uploadAllImages(imageFiles);
                     const payload = {
-                        fieldOfficer: fieldOfficer,
-                        meterNumber: meterNumber,
-                        oldMeterNumber: oldMeterNumber,
+                        fieldOfficer,
+                        meterNumber,
+                        oldMeterNumber,
                         buildingImageUrls: imageUrls,
-                        notes: notes
+                        notes
                     };
-                    
                     const response = await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
                         mode: 'cors',
-                        redirect: 'follow',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify(payload)
                     });
-                    
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const result = await response.json();
-                    
                     if (result.result === 'success') {
                         showMessage('✅ تم إرسال البيانات بنجاح!', 'success');
                         form.reset();
@@ -587,7 +530,7 @@
                             if (fileInput) fileInput.value = '';
                         }
                     } else {
-                        showMessage('❌ فشل الإرسال: ' + (result.error || 'خطأ غير معروف'), 'error');
+                        showMessage('❌ فشل الإرسال: ' + (result.error || 'خطأ'), 'error');
                     }
                 } catch (error) {
                     console.error(error);
@@ -598,59 +541,70 @@
                 }
             });
 
-            // ======================
-            // تحميل الصور المحفوظة (ZIP)
-            // ======================
+            // ===== عناصر التحميل =====
             const downloadBtn = document.getElementById('downloadBtn');
+            const pdfBtn = document.getElementById('pdfBtn');
             const downloadMeter = document.getElementById('downloadMeterNumber');
             const downloadDate = document.getElementById('downloadDate');
             const downloadMsg = document.getElementById('downloadMessage');
             const progressContainer = document.getElementById('progressContainer');
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
-            
+            const pdfContent = document.getElementById('pdfContent');
+
+            // دالة مساعدة لتوليد اسم ملف الصورة
+            function generateImageName(newMeter, oldMeter, index) {
+                const old = oldMeter && oldMeter.trim() !== '' ? oldMeter.trim() : 'بدون';
+                return `${newMeter}-${old}-${index}`;
+            }
+
+            // ===== تحميل ZIP مع أسماء تحتوي على الأرقام =====
             downloadBtn.addEventListener('click', async function() {
                 const meter = downloadMeter.value.trim();
                 const date = downloadDate.value;
-                
                 if (!meter && !date) {
                     downloadMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> الرجاء إدخال رقم عداد أو تاريخ';
                     downloadMsg.style.color = '#dc3545';
                     return;
                 }
-                
                 const params = new URLSearchParams();
                 if (meter) params.append('meterNumber', meter);
                 if (date) params.append('date', date);
-                
-                downloadMsg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري البحث عن الصور...';
+                // نطلب البيانات الكاملة للحصول على الرقم القديم
+                params.append('mode', 'full');
+
+                downloadMsg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري البحث عن البيانات...';
                 downloadMsg.style.color = '#007bff';
                 downloadBtn.disabled = true;
                 progressContainer.style.display = 'block';
                 progressFill.style.width = '0%';
                 progressText.textContent = '0%';
-                
+
                 try {
                     const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
                     const response = await fetch(url);
                     const result = await response.json();
-                    
                     if (result.error) throw new Error(result.error);
-                    
-                    const imageUrls = result.imageUrls || [];
+                    // إذا كان الوضع full، فستكون النتيجة كائن data يحتوي على imageUrls و oldMeterNumber
+                    let imageUrls = [];
+                    let newMeter = meter;
+                    let oldMeter = '';
+                    if (result.data) {
+                        imageUrls = result.data.imageUrls || [];
+                        newMeter = result.data.meterNumber || meter;
+                        oldMeter = result.data.oldMeterNumber || '';
+                    } else {
+                        // للتوافق مع الوضع القديم إذا لم يكن full
+                        imageUrls = result.imageUrls || [];
+                    }
                     if (imageUrls.length === 0) throw new Error('لا توجد صور مطابقة');
-                    
+
                     downloadMsg.innerHTML = `تم العثور على ${imageUrls.length} صورة. جاري التحميل...`;
-                    
                     const zip = new JSZip();
                     let downloaded = 0;
                     const total = imageUrls.length;
-                    
-                    const resizedUrls = imageUrls.map(url => {
-                        if (url.includes('?')) return url + '&w=800';
-                        else return url + '?w=800';
-                    });
-                    
+                    const resizedUrls = imageUrls.map(url => url.includes('?') ? url + '&w=800' : url + '?w=800');
+
                     const promises = resizedUrls.map(async (url, idx) => {
                         try {
                             const imgResponse = await fetch(url);
@@ -658,7 +612,9 @@
                             const blob = await imgResponse.blob();
                             let ext = url.split('.').pop().split('?')[0];
                             if (!ext.match(/jpg|jpeg|png|gif|webp/i)) ext = 'jpg';
-                            zip.file(`image_${idx+1}.${ext}`, blob, { binary: true });
+                            // توليد اسم الملف: الجديد-القديم-الرقم
+                            const fileName = `${generateImageName(newMeter, oldMeter, idx+1)}.${ext}`;
+                            zip.file(fileName, blob, { binary: true });
                             downloaded++;
                             const percent = Math.round((downloaded / total) * 100);
                             progressFill.style.width = percent + '%';
@@ -668,16 +624,12 @@
                             zip.file(`error_${idx+1}.txt`, `فشل تحميل الصورة: ${url}\n${err.message}`);
                         }
                     });
-                    
                     await Promise.all(promises);
-                    
                     if (downloaded === 0) throw new Error('لم نتمكن من تحميل أي صورة');
-                    
                     const content = await zip.generateAsync({ type: 'blob' });
-                    const fileName = date ? `صور_${date}.zip` : `صور_العداد_${meter}.zip`;
+                    const fileName = date ? `صور_${date}.zip` : `صور_العداد_${newMeter}.zip`;
                     saveAs(content, fileName);
-                    
-                    downloadMsg.innerHTML = `<i class="fas fa-check-circle"></i> تم تنزيل ${downloaded} صورة (مصغرة 800px) من أصل ${imageUrls.length}.`;
+                    downloadMsg.innerHTML = `<i class="fas fa-check-circle"></i> تم تنزيل ${downloaded} صورة بأسماء (${newMeter}-${oldMeter || 'بدون'}-1...).`;
                     downloadMsg.style.color = '#28a745';
                 } catch (err) {
                     downloadMsg.innerHTML = `<i class="fas fa-times-circle"></i> خطأ: ${err.message}`;
@@ -693,48 +645,39 @@
                 }
             });
 
-            // ======================
-            // تصدير PDF باستخدام html2canvas (يدعم العربية والتنسيق)
-            // ======================
-            const pdfBtn = document.getElementById('pdfBtn');
-            const pdfContent = document.getElementById('pdfContent');
-            
+            // ===== تصدير PDF مع أسماء تحتوي على الأرقام =====
             pdfBtn.addEventListener('click', async function() {
                 const meter = downloadMeter.value.trim();
                 if (!meter) {
-                    downloadMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> الرجاء إدخال رقم العداد لتصدير PDF';
+                    downloadMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> الرجاء إدخال رقم العداد';
                     downloadMsg.style.color = '#dc3545';
                     return;
                 }
-                
-                downloadMsg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري تجهيز بيانات العداد...';
+                downloadMsg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري تجهيز البيانات...';
                 downloadMsg.style.color = '#007bff';
                 pdfBtn.disabled = true;
                 progressContainer.style.display = 'block';
                 progressFill.style.width = '0%';
                 progressText.textContent = '0%';
-                
+
                 try {
-                    // جلب بيانات العداد كاملة
                     const params = new URLSearchParams();
                     params.append('meterNumber', meter);
                     params.append('mode', 'full');
-                    
                     const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
                     const response = await fetch(url);
                     const result = await response.json();
-                    
                     if (result.error) throw new Error(result.error);
-                    
                     const data = result.data;
-                    if (!data) throw new Error('لم يتم العثور على بيانات لهذا العداد');
-                    
+                    if (!data) throw new Error('لم يتم العثور على بيانات');
                     const imageUrls = data.imageUrls || [];
-                    if (imageUrls.length === 0) throw new Error('لا توجد صور لهذا العداد');
-                    
+                    if (imageUrls.length === 0) throw new Error('لا توجد صور');
+                    const newMeter = data.meterNumber || meter;
+                    const oldMeter = data.oldMeterNumber || '';
+
                     downloadMsg.innerHTML = `تم العثور على ${imageUrls.length} صورة. جاري إنشاء PDF...`;
-                    
-                    // بناء محتوى HTML للـ PDF
+
+                    // بناء HTML للـ PDF
                     let html = `
                         <div style="font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; direction: rtl; padding: 20px; background: #fff; color: #333;">
                             <h2 style="text-align: center; color: #2c3e50; border-bottom: 2px solid #667eea; padding-bottom: 10px;">تقرير العداد</h2>
@@ -742,9 +685,9 @@
                                 <tr><td style="padding: 8px 12px; border: 1px solid #ddd; background: #f8f9fa; font-weight: bold; width: 30%;">الميداني</td>
                                     <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.fieldOfficer || 'غير محدد'}</td></tr>
                                 <tr><td style="padding: 8px 12px; border: 1px solid #ddd; background: #f8f9fa; font-weight: bold;">رقم العداد الجديد</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.meterNumber || ''}</td></tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #ddd;">${newMeter}</td></tr>
                                 <tr><td style="padding: 8px 12px; border: 1px solid #ddd; background: #f8f9fa; font-weight: bold;">رقم العداد القديم</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.oldMeterNumber || 'لا يوجد'}</td></tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #ddd;">${oldMeter || 'لا يوجد'}</td></tr>
                                 <tr><td style="padding: 8px 12px; border: 1px solid #ddd; background: #f8f9fa; font-weight: bold;">الملاحظات</td>
                                     <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.notes || 'لا توجد ملاحظات'}</td></tr>
                                 <tr><td style="padding: 8px 12px; border: 1px solid #ddd; background: #f8f9fa; font-weight: bold;">تاريخ الإرسال</td>
@@ -753,29 +696,24 @@
                             <h3 style="text-align: center; color: #2c3e50; margin-top: 20px;">الصور المرفقة</h3>
                             <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 15px;">
                     `;
-                    
-                    // إضافة الصور (كل صورة بحجم 10سم)
                     for (let i = 0; i < imageUrls.length; i++) {
                         const imgUrl = imageUrls[i];
-                        // نضيف معامل w=800 لتقليل الحجم
                         const resized = imgUrl.includes('?') ? imgUrl + '&w=800' : imgUrl + '?w=800';
+                        const imgName = generateImageName(newMeter, oldMeter, i+1);
                         html += `
                             <div style="width: 10cm; height: 10cm; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fafafa;">
-                                <img src="${resized}" style="width: 100%; height: 100%; object-fit: cover;" alt="صورة ${i+1}">
-                                <div style="font-size: 12px; color: #555; padding: 4px; background: rgba(255,255,255,0.8); width: 100%; text-align: center;">صورة ${i+1}</div>
+                                <img src="${resized}" style="width: 100%; height: 100%; object-fit: cover;" alt="${imgName}">
+                                <div style="font-size: 12px; color: #555; padding: 4px; background: rgba(255,255,255,0.8); width: 100%; text-align: center;">${imgName}</div>
                             </div>
                         `;
                     }
-                    
                     html += `
                             </div>
                             <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">تم التصدير بتاريخ ${new Date().toLocaleDateString('ar-EG')}</div>
                         </div>
                     `;
-                    
                     pdfContent.innerHTML = html;
-                    
-                    // استخدام html2canvas لتحويل المحتوى إلى صورة
+
                     const canvas = await html2canvas(pdfContent, {
                         scale: 2,
                         useCORS: true,
@@ -784,39 +722,27 @@
                         height: pdfContent.scrollHeight,
                         windowHeight: pdfContent.scrollHeight,
                     });
-                    
                     const imgData = canvas.toDataURL('image/png');
-                    
-                    // إنشاء PDF بحجم A4
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF('p', 'mm', 'a4');
                     const pageWidth = 210;
                     const pageHeight = 297;
                     const margin = 10;
-                    
-                    // تقسيم الصورة الطويلة إلى صفحات
                     const imgWidth = pageWidth - 2 * margin;
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                    
                     let heightLeft = imgHeight;
                     let position = 0;
-                    
-                    // الصفحة الأولى
                     doc.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
                     heightLeft -= pageHeight - 2 * margin;
-                    
-                    // الصفحات التالية
                     while (heightLeft > 0) {
                         position = heightLeft - imgHeight;
                         doc.addPage();
                         doc.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
                         heightLeft -= pageHeight - 2 * margin;
                     }
-                    
-                    // حفظ PDF باسم يحتوي على رقم العداد
-                    doc.save(`تقرير_العداد_${meter}.pdf`);
-                    
-                    downloadMsg.innerHTML = `<i class="fas fa-check-circle"></i> تم تصدير PDF بنجاح (${imageUrls.length} صورة بحجم 10 سم).`;
+                    doc.save(`تقرير_العداد_${newMeter}.pdf`);
+
+                    downloadMsg.innerHTML = `<i class="fas fa-check-circle"></i> تم تصدير PDF بنجاح (${imageUrls.length} صورة بأسماء ${newMeter}-${oldMeter || 'بدون'}-1...).`;
                     downloadMsg.style.color = '#28a745';
                 } catch (err) {
                     downloadMsg.innerHTML = `<i class="fas fa-times-circle"></i> خطأ: ${err.message}`;
@@ -831,6 +757,7 @@
                     }, 8000);
                 }
             });
+
         })();
     </script>
 </body>
