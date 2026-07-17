@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق استبدال العداد</title>
+    <title>تصوير الاستبدال - الميدانيين ورقم العداد</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <!-- مكتبة jsPDF لإنشاء PDF -->
+    <!-- مكتبات PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -198,8 +199,8 @@
             flex-wrap: wrap;
         }
         .download-flex > div {
-            flex: 2;
-            min-width: 200px;
+            flex: 1;
+            min-width: 150px;
         }
         .download-flex button {
             background: #28a745;
@@ -246,6 +247,69 @@
             background: #f1f3f5;
             padding: 3px 10px;
             border-radius: 20px;
+        }
+        /* جزء مخفي لإنشاء PDF */
+        #pdfContent {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 800px;
+            background: #fff;
+            padding: 30px;
+            font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+            direction: rtl;
+            color: #333;
+        }
+        #pdfContent h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        #pdfContent .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        #pdfContent .info-table td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+        }
+        #pdfContent .info-table .label {
+            font-weight: bold;
+            background: #f8f9fa;
+            width: 30%;
+        }
+        #pdfContent .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        #pdfContent .image-item {
+            width: 10cm;
+            height: 10cm;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fafafa;
+        }
+        #pdfContent .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #pdfContent .image-item .label {
+            font-size: 12px;
+            color: #555;
+            padding: 4px;
+            background: rgba(255,255,255,0.8);
+            width: 100%;
+            text-align: center;
         }
         @media (max-width: 600px) {
             .form-grid { grid-template-columns: 1fr; }
@@ -323,7 +387,7 @@
             </div>
             <div class="download-hint">
                 <span><i class="fas fa-info-circle"></i> التحميل: تاريخ أو رقم عداد</span>
-                <span><i class="fas fa-info-circle"></i> PDF: رقم عداد فقط</span>
+                <span><i class="fas fa-info-circle"></i> PDF: رقم عداد فقط (صور بحجم 10سم)</span>
             </div>
             <div id="downloadMessage" class="note" style="margin-top: 10px;"></div>
             <!-- شريط التقدم -->
@@ -336,13 +400,16 @@
         </div>
     </div>
 
+    <!-- جزء مخفي لإعداد محتوى PDF -->
+    <div id="pdfContent"></div>
+
     <script>
         (function() {
             // ======================
             // ثوابت التطبيق
             // ======================
             const IMGBB_API_KEY = '80e250fa77e32dc6df4bbd54eb7af292';
-            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRiFS1-Lg303hWKxdFthrcaXXPBDc_-TV3WCJZyg-VdOx9jksnqQWXHxFTyknDgq0J-g/exec';  // غيّر هذا الرابط
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzmwh1cZlDc_vmDkCTw8Us43fNpy8rkpja1spSXF80ZyeCHyg5owbSA0LJxOYk8s8cOsQ/exec';  // غيّر هذا الرابط
 
             // ======================
             // إدارة صور النموذج (5 صور)
@@ -627,9 +694,10 @@
             });
 
             // ======================
-            // تصدير PDF (بيانات العداد + صور بحجم 10 سم × 10 سم)
+            // تصدير PDF باستخدام html2canvas (يدعم العربية والتنسيق)
             // ======================
             const pdfBtn = document.getElementById('pdfBtn');
+            const pdfContent = document.getElementById('pdfContent');
             
             pdfBtn.addEventListener('click', async function() {
                 const meter = downloadMeter.value.trim();
@@ -647,10 +715,10 @@
                 progressText.textContent = '0%';
                 
                 try {
-                    // جلب بيانات العداد (نص + صور)
+                    // جلب بيانات العداد كاملة
                     const params = new URLSearchParams();
                     params.append('meterNumber', meter);
-                    params.append('mode', 'full'); // طلب البيانات الكاملة
+                    params.append('mode', 'full');
                     
                     const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
                     const response = await fetch(url);
@@ -666,81 +734,89 @@
                     
                     downloadMsg.innerHTML = `تم العثور على ${imageUrls.length} صورة. جاري إنشاء PDF...`;
                     
+                    // بناء محتوى HTML للـ PDF
+                    let html = `
+                        <div style="font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; direction: rtl; padding: 20px; background: #fff; color: #333;">
+                            <h2 style="text-align: center; color: #2c3e50; border-bottom: 2px solid #667eea; padding-bottom: 10px;">تقرير العداد</h2>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+                                <tr><td style="padding: 8px 12px; border: 1px solid #ddd; background: #f8f9fa; font-weight: bold; width: 30%;">الميداني</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.fieldOfficer || 'غير محدد'}</td></tr>
+                                <tr><td style="padding: 8px 12px; border: 1px solid #ddd; background: #f8f9fa; font-weight: bold;">رقم العداد الجديد</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.meterNumber || ''}</td></tr>
+                                <tr><td style="padding: 8px 12px; border: 1px solid #ddd; background: #f8f9fa; font-weight: bold;">رقم العداد القديم</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.oldMeterNumber || 'لا يوجد'}</td></tr>
+                                <tr><td style="padding: 8px 12px; border: 1px solid #ddd; background: #f8f9fa; font-weight: bold;">الملاحظات</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.notes || 'لا توجد ملاحظات'}</td></tr>
+                                <tr><td style="padding: 8px 12px; border: 1px solid #ddd; background: #f8f9fa; font-weight: bold;">تاريخ الإرسال</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #ddd;">${data.timestamp || ''}</td></tr>
+                            </table>
+                            <h3 style="text-align: center; color: #2c3e50; margin-top: 20px;">الصور المرفقة</h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 15px;">
+                    `;
+                    
+                    // إضافة الصور (كل صورة بحجم 10سم)
+                    for (let i = 0; i < imageUrls.length; i++) {
+                        const imgUrl = imageUrls[i];
+                        // نضيف معامل w=800 لتقليل الحجم
+                        const resized = imgUrl.includes('?') ? imgUrl + '&w=800' : imgUrl + '?w=800';
+                        html += `
+                            <div style="width: 10cm; height: 10cm; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fafafa;">
+                                <img src="${resized}" style="width: 100%; height: 100%; object-fit: cover;" alt="صورة ${i+1}">
+                                <div style="font-size: 12px; color: #555; padding: 4px; background: rgba(255,255,255,0.8); width: 100%; text-align: center;">صورة ${i+1}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    html += `
+                            </div>
+                            <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">تم التصدير بتاريخ ${new Date().toLocaleDateString('ar-EG')}</div>
+                        </div>
+                    `;
+                    
+                    pdfContent.innerHTML = html;
+                    
+                    // استخدام html2canvas لتحويل المحتوى إلى صورة
+                    const canvas = await html2canvas(pdfContent, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        width: 800,
+                        height: pdfContent.scrollHeight,
+                        windowHeight: pdfContent.scrollHeight,
+                    });
+                    
+                    const imgData = canvas.toDataURL('image/png');
+                    
                     // إنشاء PDF بحجم A4
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF('p', 'mm', 'a4');
                     const pageWidth = 210;
                     const pageHeight = 297;
-                    const margin = 15;
-                    const maxImageSize = 100; // 10 سم
+                    const margin = 10;
                     
-                    // الصفحة الأولى: معلومات العداد
-                    doc.setFontSize(18);
-                    doc.text('بيانات العداد', pageWidth / 2, 25, { align: 'center' });
+                    // تقسيم الصورة الطويلة إلى صفحات
+                    const imgWidth = pageWidth - 2 * margin;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
                     
-                    doc.setFontSize(12);
-                    const lines = [
-                        `الميداني: ${data.fieldOfficer || 'غير محدد'}`,
-                        `رقم العداد الجديد: ${data.meterNumber || ''}`,
-                        `رقم العداد القديم: ${data.oldMeterNumber || 'لا يوجد'}`,
-                        `الملاحظات: ${data.notes || 'لا توجد ملاحظات'}`,
-                        `تاريخ الإرسال: ${data.timestamp || ''}`
-                    ];
-                    let yPos = 40;
-                    lines.forEach(line => {
-                        doc.text(line, margin, yPos);
-                        yPos += 8;
-                    });
+                    let heightLeft = imgHeight;
+                    let position = 0;
                     
-                    // إضافة الصور كل في صفحة منفصلة بحجم 10 سم × 10 سم
-                    let totalImages = imageUrls.length;
-                    let loadedImages = 0;
+                    // الصفحة الأولى
+                    doc.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight - 2 * margin;
                     
-                    for (let i = 0; i < totalImages; i++) {
-                        const url = imageUrls[i];
-                        try {
-                            // تحميل الصورة وتحويلها إلى Base64
-                            const imgResponse = await fetch(url);
-                            if (!imgResponse.ok) throw new Error(`HTTP ${imgResponse.status}`);
-                            const blob = await imgResponse.blob();
-                            const reader = new FileReader();
-                            const base64 = await new Promise((resolve) => {
-                                reader.onload = () => resolve(reader.result);
-                                reader.readAsDataURL(blob);
-                            });
-                            
-                            // إضافة صفحة جديدة للصورة
-                            if (i > 0) doc.addPage();
-                            
-                            // حساب إحداثيات وضع الصورة في وسط الصفحة
-                            const x = (pageWidth - maxImageSize) / 2;
-                            const y = (pageHeight - maxImageSize) / 2;
-                            
-                            doc.addImage(base64, 'JPEG', x, y, maxImageSize, maxImageSize);
-                            
-                            // إضافة تسمية تحت الصورة
-                            doc.setFontSize(10);
-                            doc.text(`صورة ${i+1}`, pageWidth / 2, y + maxImageSize + 10, { align: 'center' });
-                            
-                            loadedImages++;
-                            const percent = Math.round((loadedImages / totalImages) * 100);
-                            progressFill.style.width = percent + '%';
-                            progressText.textContent = percent + '% (' + loadedImages + '/' + totalImages + ')';
-                        } catch (err) {
-                            console.warn(`خطأ في تحميل الصورة ${i+1}:`, err);
-                            // إضافة صفحة مع رسالة خطأ
-                            if (i > 0) doc.addPage();
-                            doc.setFontSize(14);
-                            doc.text(`تعذر تحميل الصورة ${i+1}`, pageWidth / 2, pageHeight / 2, { align: 'center' });
-                            doc.setFontSize(10);
-                            doc.text(`الرابط: ${url}`, pageWidth / 2, pageHeight / 2 + 10, { align: 'center' });
-                        }
+                    // الصفحات التالية
+                    while (heightLeft > 0) {
+                        position = heightLeft - imgHeight;
+                        doc.addPage();
+                        doc.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight - 2 * margin;
                     }
                     
-                    // حفظ PDF
-                    doc.save(`بيانات_العداد_${meter}.pdf`);
+                    // حفظ PDF باسم يحتوي على رقم العداد
+                    doc.save(`تقرير_العداد_${meter}.pdf`);
                     
-                    downloadMsg.innerHTML = `<i class="fas fa-check-circle"></i> تم تصدير PDF بنجاح (${loadedImages} صورة بحجم 10 سم).`;
+                    downloadMsg.innerHTML = `<i class="fas fa-check-circle"></i> تم تصدير PDF بنجاح (${imageUrls.length} صورة بحجم 10 سم).`;
                     downloadMsg.style.color = '#28a745';
                 } catch (err) {
                     downloadMsg.innerHTML = `<i class="fas fa-times-circle"></i> خطأ: ${err.message}`;
