@@ -229,19 +229,6 @@
             font-size: 14px;
             color: #555;
         }
-        .download-hint {
-            font-size: 13px;
-            color: #6c757d;
-            margin-top: 5px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .download-hint span {
-            background: #f1f3f5;
-            padding: 3px 10px;
-            border-radius: 20px;
-        }
         @media (max-width: 600px) {
             .form-grid { grid-template-columns: 1fr; }
             .full-width { grid-column: span 1; }
@@ -302,21 +289,12 @@
             <h3><i class="fas fa-download"></i> تحميل الصور المحفوظة</h3>
             <div class="download-flex">
                 <div>
-                    <label><i class="fas fa-charging-station"></i> رقم العداد (اختياري)</label>
+                    <label><i class="fas fa-charging-station"></i> رقم العداد المطلوب</label>
                     <input type="text" id="downloadMeterNumber" placeholder="أدخل رقم العداد">
                 </div>
                 <div>
-                    <label><i class="fas fa-calendar-day"></i> التاريخ (اختياري)</label>
-                    <input type="date" id="downloadDate">
+                    <button type="button" id="downloadBtn"><i class="fas fa-file-archive"></i> تحميل جميع الصور (ZIP)</button>
                 </div>
-                <div>
-                    <button type="button" id="downloadBtn"><i class="fas fa-file-archive"></i> تحميل الصور (ZIP)</button>
-                </div>
-            </div>
-            <div class="download-hint">
-                <span><i class="fas fa-info-circle"></i> أدخل تاريخاً لجلب كل صور ذلك اليوم</span>
-                <span><i class="fas fa-info-circle"></i> أدخل رقماً لجلب صور ذلك العداد</span>
-                <span><i class="fas fa-info-circle"></i> أدخل كليهما لجلب صور العداد في ذلك التاريخ</span>
             </div>
             <div id="downloadMessage" class="note" style="margin-top: 10px;"></div>
             <!-- شريط التقدم -->
@@ -335,7 +313,7 @@
             // ثوابت التطبيق
             // ======================
             const IMGBB_API_KEY = '80e250fa77e32dc6df4bbd54eb7af292';
-            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby9VDjvpZpdGgjIxDQfut-15pUWXTatBQ31M5DAdGfmHqbP3mOJevjO7VJBuaGMKHlX1w/exec';  // غيّر هذا الرابط
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyK1gDkD6UVIj534OW1pK5yCBg9maCWoAMOXxPXlOprZDi5NUIn9rumKJ8BvOO5Eyfe1g/exec';  // غيّر هذا الرابط
 
             // ======================
             // إدارة صور النموذج (5 صور)
@@ -525,11 +503,10 @@
             });
 
             // ======================
-            // تحميل الصور المحفوظة (بالتاريخ و/أو رقم العداد)
+            // تحميل الصور المحفوظة كـ ZIP (مع تقليل الحجم)
             // ======================
             const downloadBtn = document.getElementById('downloadBtn');
             const downloadMeter = document.getElementById('downloadMeterNumber');
-            const downloadDate = document.getElementById('downloadDate');
             const downloadMsg = document.getElementById('downloadMessage');
             const progressContainer = document.getElementById('progressContainer');
             const progressFill = document.getElementById('progressFill');
@@ -537,18 +514,11 @@
             
             downloadBtn.addEventListener('click', async function() {
                 const meter = downloadMeter.value.trim();
-                const date = downloadDate.value; // تنسيق YYYY-MM-DD
-                
-                if (!meter && !date) {
-                    downloadMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> الرجاء إدخال رقم عداد أو تاريخ على الأقل';
+                if (!meter) {
+                    downloadMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> الرجاء إدخال رقم العداد';
                     downloadMsg.style.color = '#dc3545';
                     return;
                 }
-                
-                // بناء معاملات الاستعلام
-                const params = new URLSearchParams();
-                if (meter) params.append('meterNumber', meter);
-                if (date) params.append('date', date);
                 
                 downloadMsg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري البحث عن الصور...';
                 downloadMsg.style.color = '#007bff';
@@ -558,31 +528,37 @@
                 progressText.textContent = '0%';
                 
                 try {
-                    const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                    const response = await fetch(url);
+                    // 1. جلب روابط الصور من الخادم
+                    const response = await fetch(`${APPS_SCRIPT_URL}?meterNumber=${encodeURIComponent(meter)}`);
                     const result = await response.json();
                     
                     if (result.error) {
                         throw new Error(result.error);
                     }
                     
-                    const imageUrls = result.imageUrls || [];
+                    let imageUrls = result.imageUrls || [];
                     if (imageUrls.length === 0) {
-                        throw new Error('لا توجد صور مطابقة للمعايير المحددة');
+                        throw new Error('لا توجد صور محفوظة لهذا العداد');
                     }
                     
                     downloadMsg.innerHTML = `تم العثور على ${imageUrls.length} صورة. جاري التحميل...`;
                     
-                    // تحميل الصور بحجم مصغر
+                    // 2. تحميل الصور بحجم مصغر (عرض 800 بكسل) لتسريع التحميل
                     const zip = new JSZip();
                     let downloaded = 0;
                     const total = imageUrls.length;
                     
+                    // نعدل الرابط لإضافة معامل الحجم المصغر
                     const resizedUrls = imageUrls.map(url => {
-                        if (url.includes('?')) return url + '&w=800';
-                        else return url + '?w=800';
+                        // إضافة ?w=800 (أو أي معامل آخر يدعمه ImgBB)
+                        if (url.includes('?')) {
+                            return url + '&w=800';
+                        } else {
+                            return url + '?w=800';
+                        }
                     });
                     
+                    // تحميل كل صورة على حدة مع تحديث التقدم
                     const promises = resizedUrls.map(async (url, idx) => {
                         try {
                             const imgResponse = await fetch(url);
@@ -590,29 +566,30 @@
                             const blob = await imgResponse.blob();
                             let ext = url.split('.').pop().split('?')[0];
                             if (!ext.match(/jpg|jpeg|png|gif|webp/i)) ext = 'jpg';
-                            const fileName = `image_${idx+1}.${ext}`;
-                            zip.file(fileName, blob, { binary: true });
+                            zip.file(`meter_${meter}_${idx+1}.${ext}`, blob, { binary: true });
                             downloaded++;
+                            // تحديث التقدم
                             const percent = Math.round((downloaded / total) * 100);
                             progressFill.style.width = percent + '%';
                             progressText.textContent = percent + '% (' + downloaded + '/' + total + ')';
                         } catch (err) {
                             console.warn(`خطأ في الصورة ${idx+1}:`, err);
-                            zip.file(`error_${idx+1}.txt`, `فشل تحميل الصورة: ${url}\n${err.message}`);
+                            zip.file(`error_image_${idx+1}.txt`, `فشل تحميل الصورة: ${url}\n${err.message}`);
+                            // لا نزيد downloaded هنا لأنها فشلت
                         }
                     });
                     
                     await Promise.all(promises);
                     
                     if (downloaded === 0 && imageUrls.length > 0) {
-                        throw new Error('لم نتمكن من تحميل أي صورة، راجع الروابط');
+                        throw new Error('لم نتمكن من تحميل أي صورة، راجع الرابط أو حالة الصور');
                     }
                     
+                    // 3. إنشاء ZIP وتنزيله
                     const content = await zip.generateAsync({ type: 'blob' });
-                    const fileName = date ? `صور_${date}.zip` : `صور_العداد_${meter}.zip`;
-                    saveAs(content, fileName);
+                    saveAs(content, `صور_العداد_${meter}.zip`);
                     
-                    downloadMsg.innerHTML = `<i class="fas fa-check-circle"></i> تم تنزيل ${downloaded} صورة (مصغرة 800px) من أصل ${imageUrls.length}.`;
+                    downloadMsg.innerHTML = `<i class="fas fa-check-circle"></i> تم تنزيل ${downloaded} صورة (مصغرة بحجم 800 بكسل) من أصل ${imageUrls.length} بنجاح.`;
                     downloadMsg.style.color = '#28a745';
                 } catch (err) {
                     downloadMsg.innerHTML = `<i class="fas fa-times-circle"></i> خطأ: ${err.message}`;
